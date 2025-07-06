@@ -1,0 +1,195 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>⚔️ Gaming WireGuard Pannel ⚔️</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+
+    body {
+      background: url('https://images.unsplash.com/photo-1618681092519-5e5a0d85c06d') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Orbitron', sans-serif;
+      color: #00ffe1;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    h2 {
+      font-size: 36px;
+      color: #ff0040;
+      text-shadow: 2px 2px 8px black;
+      margin-bottom: 30px;
+    }
+
+    label, select, input {
+      display: block;
+      margin: 12px auto;
+      font-size: 16px;
+      width: 90%;
+      max-width: 300px;
+      padding: 8px;
+      border-radius: 6px;
+      background-color: #111111cc;
+      border: 1px solid #00ffe1;
+      color: #00ffe1;
+    }
+
+    textarea {
+      width: 95%;
+      max-width: 700px;
+      height: 280px;
+      background-color: #000000dd;
+      color: #00ff99;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      padding: 15px;
+      margin-top: 20px;
+      border: 2px solid #00ffe1;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00ffe1;
+    }
+
+    button {
+      padding: 12px 25px;
+      margin: 12px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    #generateBtn {
+      background-color: #ffcc00;
+      color: #000;
+      box-shadow: 0 0 10px #ffcc00;
+    }
+
+    #saveBtn {
+      background-color: #00ff66;
+      color: #000;
+      box-shadow: 0 0 10px #00ff66;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>⚔️ WIREGUARD CONFIG GENERATOR - Aminiyt ⚔️</h2>
+
+  <label>🎮 Select Server:</label>
+  <select id="server">
+    <option>Qatar</option>
+    <option>France</option>
+    <option>UAE</option>
+    <option>Saudi Arabia</option>
+    <option>Germany</option>
+    <option>Turkey</option>
+    <option>Random</option>
+  </select>
+
+  <label>💥 Game Mode:</label>
+  <select id="mode">
+    <option>Classic</option>
+    <option>TDM</option>
+  </select>
+
+  <label>📆 Duration (Days):</label>
+  <input type="number" id="days" min="1" value="30">
+
+  <label>📦 Data Limit (GB):</label>
+  <input type="number" id="gigabytes" min="1" value="100">
+
+  <label>👥 Users:</label>
+  <input type="number" id="users" min="1" value="1">
+
+  <label>🌐 Internet Type:</label>
+  <select id="internet">
+    <option>Hamrah Aval</option>
+    <option>Irancell</option>
+    <option>Wi-Fi</option>
+    <option>Rightel</option>
+    <option>Shatel</option>
+  </select>
+
+  <button id="generateBtn" onclick="generateConfig()">🔥 Generate Config</button>
+  <button id="saveBtn" onclick="saveConfig()">💾 Save Config</button>
+
+  <textarea id="configOutput" readonly placeholder="Generated WireGuard config will appear here..."></textarea>
+
+  <script>
+    function generateRandomKey() {
+      const array = new Uint8Array(32);
+      window.crypto.getRandomValues(array);
+      return btoa(String.fromCharCode(...array));
+    }
+
+    function generateRandomIPv6() {
+      return Array.from({length: 8}, () =>
+        Math.floor(Math.random() * 65536).toString(16)
+      ).join(":");
+    }
+
+    function randByte() {
+      return Math.floor(Math.random() * 256);
+    }
+
+    function generateConfig() {
+      const server = document.getElementById("server").value;
+      const mode = document.getElementById("mode").value;
+      const days = document.getElementById("days").value;
+      const gigabytes = document.getElementById("gigabytes").value;
+      const users = document.getElementById("users").value;
+      const internet = document.getElementById("internet").value;
+
+      const mtu = Math.floor(Math.random() * (1420 - 1280 + 1)) + 1280;
+      const endpoint = `${randByte()}.${randByte()}.${randByte()}.${randByte()}:51820`;
+      const privateKey = generateRandomKey();
+      const publicKey = generateRandomKey();
+      const preSharedKey = generateRandomKey();
+      const address = `192.168.${randByte()}.${randByte()}/24`;
+      const keepalive = [25, 30, 35][Math.floor(Math.random() * 3)];
+      const ipv6_addresses = Array.from({length: 10}, generateRandomIPv6);
+      const ipv6_dns = Array.from({length: 20}, generateRandomIPv6);
+      const dns = `10.202.10.10, 78.157.42.100, ${ipv6_dns.join(", ")}`;
+
+      const config = `[Interface]
+PrivateKey = ${privateKey}
+Address = ${address}, ${ipv6_addresses.join(", ")}
+MTU = ${mtu}
+DNS = ${dns}
+
+[Peer]
+PublicKey = ${publicKey}
+PresharedKey = ${preSharedKey}
+Endpoint = ${endpoint}
+PersistentKeepalive = ${keepalive}
+
+# 🎮 GAMING CONFIG
+# Server: ${server}
+# Mode: ${mode}
+# Days: ${days}
+# GB: ${gigabytes}
+# Users: ${users}
+# Internet: ${internet}
+`;
+
+      document.getElementById("configOutput").value = config;
+    }
+
+    function saveConfig() {
+      const text = document.getElementById("configOutput").value;
+      const blob = new Blob([text], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "wireguard-gaming.conf";
+      a.click();
+    }
+  </script>
+</body>
+</html>
